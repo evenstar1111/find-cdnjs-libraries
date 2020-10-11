@@ -50,28 +50,26 @@ export default function Home({ libraries }) {
   );
 
   return (
-    <Container className="mt-5">
+    <Container className="mt-5 pb-2">
       <Jumbotron>
         <Form onSubmit={(e) => e.preventDefault()}>
-          <FormGroup>
-            <FormLabel htmlFor="search-in-libs" srOnly>
-              {' '}
-              Search Libraries{' '}
-            </FormLabel>
-            <FormControl
-              style={{ paddingBottom: '12px' }}
-              size="lg"
-              color="secondary"
-              id="search-in-libs"
-              placeholder="search a library name"
-              value={value}
-              autoFocus
-              onChange={(e) => controlSearchValue(e)}
-            />
-          </FormGroup>
+          <FormLabel htmlFor="search-in-libs" srOnly>
+            {' '}
+            Search Libraries{' '}
+          </FormLabel>
+          <FormControl
+            style={{ paddingBottom: '12px' }}
+            size="lg"
+            color="secondary"
+            id="search-in-libs"
+            placeholder="search a library name"
+            value={value}
+            autoFocus
+            onChange={(e) => controlSearchValue(e)}
+          />
         </Form>
       </Jumbotron>
-      <ListGroup>
+      <ListGroup className="list-group-flush">
         {matchedLibraries.map((lib) => (
           <ListGroupItem
             key={lib.name}
