@@ -1,65 +1,101 @@
-import Head from 'next/head'
-import styles from '../styles/Home.module.css'
+import {
+  Container,
+  ListGroup,
+  ListGroupItem,
+  Form,
+  FormGroup,
+  FormLabel,
+  FormControl,
+  Jumbotron,
+} from 'react-bootstrap';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/router';
+import {
+  storeInSessionStorage,
+  getFromSessionStorage,
+} from '../actions/localStorageHelpers';
 
-export default function Home() {
+export default function Home({ libraries }) {
+  const router = useRouter();
+  const [value, setValue] = useState('');
+
+  useEffect(() => {
+    const storedValue = getFromSessionStorage('searched');
+    if (!value) {
+      if (storedValue) {
+        setValue(storedValue);
+      }
+    }
+  }, []);
+
+  const controlSearchValue = (e) => {
+    setValue(e.target.value);
+    storeInSessionStorage('searched', e.target.value);
+  };
+
+  const sortArrayObjects = (a, b) => {
+    let x = a.name.toLowerCase();
+    let y = b.name.toLowerCase();
+    if (x < y) return -1;
+    if (x > y) return 1;
+    return 0;
+  };
+
+  const sortedArray = libraries.results.sort(function (a, b) {
+    sortArrayObjects(a, b);
+  });
+
+  const matchedLibraries = sortedArray.filter(
+    (lib) => lib.name.toUpperCase().indexOf(value.toUpperCase()) > -1
+  );
+
   return (
-    <div className={styles.container}>
-      <Head>
-        <title>Create Next App</title>
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
-
-      <main className={styles.main}>
-        <h1 className={styles.title}>
-          Welcome to <a href="https://nextjs.org">Next.js!</a>
-        </h1>
-
-        <p className={styles.description}>
-          Get started by editing{' '}
-          <code className={styles.code}>pages/index.js</code>
-        </p>
-
-        <div className={styles.grid}>
-          <a href="https://nextjs.org/docs" className={styles.card}>
-            <h3>Documentation &rarr;</h3>
-            <p>Find in-depth information about Next.js features and API.</p>
-          </a>
-
-          <a href="https://nextjs.org/learn" className={styles.card}>
-            <h3>Learn &rarr;</h3>
-            <p>Learn about Next.js in an interactive course with quizzes!</p>
-          </a>
-
-          <a
-            href="https://github.com/vercel/next.js/tree/master/examples"
-            className={styles.card}
+    <Container className="mt-5">
+      <Jumbotron>
+        <Form onSubmit={(e) => e.preventDefault()}>
+          <FormGroup>
+            <FormLabel htmlFor="search-in-libs" srOnly>
+              {' '}
+              Search Libraries{' '}
+            </FormLabel>
+            <FormControl
+              style={{ paddingBottom: '12px' }}
+              size="lg"
+              color="secondary"
+              id="search-in-libs"
+              placeholder="search a library name"
+              value={value}
+              autoFocus
+              onChange={(e) => controlSearchValue(e)}
+            />
+          </FormGroup>
+        </Form>
+      </Jumbotron>
+      <ListGroup>
+        {matchedLibraries.map((lib) => (
+          <ListGroupItem
+            key={lib.name}
+            onClick={() => router.push(`lib/${lib.name}`)}
           >
-            <h3>Examples &rarr;</h3>
-            <p>Discover and deploy boilerplate example Next.js projects.</p>
-          </a>
+            {lib.name}
+          </ListGroupItem>
+        ))}
+      </ListGroup>
+    </Container>
+  );
+}
 
-          <a
-            href="https://vercel.com/import?filter=next.js&utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-          >
-            <h3>Deploy &rarr;</h3>
-            <p>
-              Instantly deploy your Next.js site to a public URL with Vercel.
-            </p>
-          </a>
-        </div>
-      </main>
+export async function getStaticProps() {
+  const res = await fetch('https://api.cdnjs.com/libraries/');
+  if (!res.ok) {
+    return console.log(res.statusText);
+  }
 
-      <footer className={styles.footer}>
-        <a
-          href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Powered by{' '}
-          <img src="/vercel.svg" alt="Vercel Logo" className={styles.logo} />
-        </a>
-      </footer>
-    </div>
-  )
+  const jsonData = await res.json();
+
+  return {
+    props: {
+      libraries: jsonData,
+    },
+  };
 }
